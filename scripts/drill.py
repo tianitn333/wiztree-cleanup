@@ -29,7 +29,9 @@ def human(n):
 def load_folders(path):
     rows = []
     with open(path, "r", encoding="utf-8") as f:
-        next(f, None)
+        head = f.readline()
+        if not head.lower().startswith("bytes\t"):
+            sys.exit("这不是 analyze.py --folders 生成的索引文件（首行应为 bytes<TAB>path）: %s" % path)
         for line in f:
             parts = line.rstrip("\n").split("\t")
             if len(parts) != 2:
