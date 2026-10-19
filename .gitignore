@@ -1,0 +1,16 @@
+# scan output & generated reports
+scans/
+reports/
+*.csv
+*.tsv
+*.png
+
+# python
+__pycache__/
+*.pyc
+
+# editors / os
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
