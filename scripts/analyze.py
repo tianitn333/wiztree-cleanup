@@ -117,6 +117,12 @@ COMPILED = re.compile(
 )
 RULE_META = {k: (label, risk, min_size, action) for k, label, risk, rx, min_size, action in RULES}
 
+# 这些是数据库文件（不是文本日志），按 .log 删会破坏 IndexedDB/LocalStorage
+DB_MARKERS = re.compile(
+    r"\\leveldb\\|\\indexeddb\\|\\local storage\\|\\session storage\\|\\blob_storage\\|\.ldb$",
+    re.IGNORECASE,
+)
+
 
 def human(n):
     n = float(n or 0)
@@ -246,17 +252,22 @@ def main():
             m = COMPILED.search(path)
             if m:
                 key = m.lastgroup
-                label, risk, min_size, action = RULE_META[key]
-                if size >= min_size:
-                    rule_stat[key][0] += size
-                    rule_stat[key][1] += 1
-                    ex = rule_examples[key]
-                    if len(ex) < 3:
-                        ex.append((size, path))
-                    else:
-                        ex.sort()
-                        if size > ex[0][0]:
-                            ex[0] = (size, path)
+                if key == "logs" and DB_MARKERS.search(path):
+                    key = None
+                if key:
+                    label, risk, min_size, action = RULE_META[key]
+                    if size >= min_size:
+                        rule_stat[key][0] += size
+                        rule_stat[key][1] += 1
+                        ex = rule_examples[key]
+                        if len(ex) < 3:
+                            ex.append((size, path))
+                        else:
+                            ex.sort()
+                            if size > ex[0][0]:
+                                ex[0] = (size, path)
+                elif size >= 512 * 1024 * 1024:
+                    biggest_unclassified.append((size, path))
             elif size >= 512 * 1024 * 1024:
                 biggest_unclassified.append((size, path))
 
